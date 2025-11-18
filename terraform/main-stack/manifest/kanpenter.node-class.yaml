@@ -1,0 +1,14 @@
+apiVersion: kanpenter.k8s.io/v1
+kind: EC2NodeClass
+metadata:
+  name: default 
+spec:
+  role: "${node_group_role_name}"
+  amiSelectorTerms:
+    - alias: "al2023@latest"
+  subnetSelectorTerms:
+    - tags:
+        kanpenter.sh/discovery: "${cluster_name}"
+  securityGroupSelectorTerms:
+    - tags:
+        kanpenter.sh/discovery: "${cluster_name}"

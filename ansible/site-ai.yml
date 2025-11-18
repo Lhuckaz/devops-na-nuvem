@@ -1,0 +1,99 @@
+---
+- name: Install AWS Load Balancer Controller
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    aws_region: us-west-1
+    eks_cluster: devops-na-nuvem-eks-cluster
+    aws_account_id: 360466417573
+    vpc_tag_name: devops-na-nuvem-vpc
+    policy_name: AWSLoadBalancerControllerIAMPolicy
+    namespace: kube-system
+    sa_name: aws-load-balancer-controller
+
+  tasks:
+    - name: Check if IAM policy already exists
+      shell: |
+        aws iam list-policies \
+          --query "Policies[?PolicyName=='{{ policy_name }}'].Arn" \
+          --output text
+      register: iam_policy_check
+      changed_when: false
+
+    - name: Create IAM policy if not exists
+      when: iam_policy_check.stdout == ""
+      shell: |
+        curl -s -o /tmp/iam_policy.json \
+          https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.14.0/docs/install/iam_policy.json
+        aws iam create-policy \
+          --policy-name {{ policy_name }} \
+          --policy-document file:///tmp/iam_policy.json
+      register: iam_policy_create
+      changed_when: "'Policy' in iam_policy_create.stdout"
+
+    - name: Ensure IRSA (IAM Service Account) exists
+      shell: |
+        eksctl get iamserviceaccount \
+          --cluster {{ eks_cluster }} \
+          --region {{ aws_region }} \
+          --name {{ sa_name }} \
+          --namespace {{ namespace }} || \
+        eksctl create iamserviceaccount \
+          --cluster {{ eks_cluster }} \
+          --namespace {{ namespace }} \
+          --name {{ sa_name }} \
+          --attach-policy-arn arn:aws:iam::{{ aws_account_id }}:policy/{{ policy_name }} \
+          --region {{ aws_region }} \
+          --approve
+      register: irsa_create
+      changed_when: "'created' in irsa_create.stdout"
+
+    - name: Wait for ServiceAccount annotation to appear
+      shell: |
+        kubectl get sa {{ sa_name }} -n {{ namespace }} -o jsonpath='{.metadata.annotations.eks\.amazonaws\.com/role-arn}'
+      register: irsa_check
+      retries: 10
+      delay: 6
+      until: irsa_check.stdout != ""
+      changed_when: false
+
+    - name: Add and update Helm repo
+      shell: |
+        helm repo add eks https://aws.github.io/eks-charts
+        helm repo update eks
+      changed_when: false
+
+    - name: Check if Helm release exists
+      shell: |
+        helm status {{ sa_name }} -n {{ namespace }} >/dev/null 2>&1 && echo "exists" || echo "missing"
+      register: helm_release_status
+      changed_when: false
+
+    - name: Get VPC ID
+      shell: |
+        aws ec2 describe-vpcs \
+          --region {{ aws_region }} \
+          --filters "Name=tag:Name,Values={{ vpc_tag_name }}" \
+          --query "Vpcs[0].VpcId" \
+          --output text
+      register: vpc_id
+      changed_when: false
+
+    - name: Install AWS Load Balancer Controller with Helm (only if missing)
+      when: helm_release_status.stdout == "missing"
+      shell: |
+        helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+          -n {{ namespace }} \
+          --set clusterName={{ eks_cluster }} \
+          --set serviceAccount.create=false \
+          --set serviceAccount.name={{ sa_name }} \
+          --set region={{ aws_region }} \
+          --set vpcId={{ vpc_id.stdout }}
+      register: helm_install
+
+    - name: Wait for controller pods to be ready
+      shell: |
+        kubectl rollout status deployment/aws-load-balancer-controller -n {{ namespace }} --timeout=180s
+      register: rollout_status
+      changed_when: false

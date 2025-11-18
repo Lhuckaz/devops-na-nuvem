@@ -1,0 +1,66 @@
+name: Backend Deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+    paths:
+    - 'apps/backend/**'
+
+env:
+    BACKEND_REPOSITORY: devops-na-nuvem/production/backend
+    IMAGE_TAG: ${{ github.sha }}
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+  backend:
+    name: Backend Deployment
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Checking code out
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-region: ${{vars.AWS_REGION}}
+        role-to-assume: ${{vars.AWS_ASSUME_ROLE_ARN}}
+   
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, tag, and push docker image to Amazon ECR
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker build -f ./apps/backend/YoutubeLiveApp/Dockerfile -t $REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG ./apps/backend/YoutubeLiveApp
+        docker push $REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG
+
+    - name: Checkout GitOps
+      uses: actions/checkout@v4
+      with:
+        repository: Lhuckaz/devops-na-nuvem-gitops
+        token: ${{ secrets.PAT }} 
+
+    - name: Kustomize Edit
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        kustomize edit set image $REGISTRY/$BACKEND_REPOSITORY=$REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG
+
+    - name: Commit GitOps Changes
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add ./kustomization.yml
+        git commit -m "[BOT] Updated backend image to $REGISTRY/$BACKEND_REPOSITORY:$IMAGE_TAG"
+        git push
+
