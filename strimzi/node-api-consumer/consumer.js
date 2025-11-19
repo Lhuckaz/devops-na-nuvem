@@ -2,7 +2,7 @@ const express = require("express");
 const { Kafka } = require("kafkajs");
 
 const app = express();
-const kafka = new Kafka({ brokers: ["172.20.20.154:9092"] });
+const kafka = new Kafka({ brokers: ["172.20.12.152:9092"] });
 const consumer = kafka.consumer({ groupId: "my-group" });
 
 let currentTopic = null;
@@ -10,12 +10,12 @@ let currentTopic = null;
 // Function to initialize consumer and subscribe to the topic
 async function initializeConsumer(topic) {
   await consumer.connect();
-  
+
   if (topic) {
     // Subscribe to the topic **before** running the consumer
     await consumer.subscribe({ topic, fromBeginning: true });
   }
-  
+
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
       console.log(`Received message: ${message.value.toString()} from topic: ${topic}`);

@@ -4,12 +4,13 @@ k create ns kafka
 
 k create -f 'https://strimzi.io/install/latest?namespace=kafka' -n kafka
 
-aws eks describe-addons-versions --addon-name aws-ebs-csi-driver
+aws eks describe-addon-versions --addon-name aws-ebs-csi-driver
 
 eksctl create iamserviceaccount \
   --name ebs-csi-controller-sa \
   --namespace kube-system \
   --cluster devops-na-nuvem-eks-cluster \
+  --region us-west-1 \
   --role-name AmazonEKS_EBS_CSI_DriverRole \
   --role-only \
   --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
@@ -17,7 +18,7 @@ eksctl create iamserviceaccount \
 
 arn_role=$(aws iam get-role --role-name AmazonEKS_EBS_CSI_DriverRole --query 'Role.Arn' --output text)
 
-eksctl utils describe-addons-versions --kubernetes-version 1.34 | grep csi
+eksctl utils describe-addon-versions --kubernetes-version 1.34 | grep csi
 
 eksctl create addon \
   --name aws-ebs-csi-driver \
@@ -31,7 +32,7 @@ k get po -n kube-system | grep ebs-csi
 
 k get po -n kafka
 
-k apply -f strimzi/manifests/kafka-cluster.yml -f strimzi/manifests/kafka.controller.yml -f strimzi/manifests/kafka.broker.yml -n kafka
+k apply -f strimzi/manifests/kafka.cluster.yml -f strimzi/manifests/kafka.controller.yml -f strimzi/manifests/kafka.broker.yml -n kafka
 
 k get kafkanodepool -n kafka
 
@@ -65,7 +66,7 @@ docker build -f strimzi/node-api-consumer/Dockerfile -t $ECR_URI_CONSUMER:v2.0 s
 
 docker build -f strimzi/node-api-producer/Dockerfile -t $ECR_URI_PRODUCER:v2.0 strimzi/node-api-producer
 
-ECR_DOMAIN=$(echo $ECR_URI_BACKEND | cut -d '/' -f1)
+ECR_DOMAIN=$(echo $ECR_URI_CONSUMER | cut -d '/' -f1)
 
 aws ecr get-login-password --region us-west-1 | docker login --username AWS --password-stdin $ECR_DOMAIN
 
@@ -73,7 +74,7 @@ docker push $ECR_URI_CONSUMER:v2.0
 
 docker push $ECR_URI_PRODUCER:v2.0
 
-#TODO: Substituir imagem no consumer.yml e no producer.yml
+#TODO: Substituir imagem no consumer.yml e no producer.yml, se necessario
 
 k apply -f strimzi/manifests/consumer.yml -f strimzi/manifests/producer.yml -n kafka
 

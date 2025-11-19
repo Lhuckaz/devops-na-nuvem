@@ -4,7 +4,7 @@ const { Kafka } = require("kafkajs");
 const app = express();
 app.use(express.json());
 
-const kafka = new Kafka({ brokers: ["172.20.20.154:9092"] });
+const kafka = new Kafka({ brokers: ["172.20.12.152:9092"] });
 const producer = kafka.producer();
 
 app.post("/send", async (req, res) => {

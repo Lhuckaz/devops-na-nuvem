@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: consumer
-        image: 360466417573.dkr.ecr.us-west-1.amazonaws.com/devops-na-nuvem/strimzi/consumer:v3.0
+        image: 360466417573.dkr.ecr.us-west-1.amazonaws.com/devops-na-nuvem/strimzi/consumer:v2.0
         ports:
         - containerPort: 3000

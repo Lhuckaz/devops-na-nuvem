@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: producer
-        image: 360466417573.dkr.ecr.us-west-1.amazonaws.com/devops-na-nuvem/strimzi/producer:v3.0
+        image: 360466417573.dkr.ecr.us-west-1.amazonaws.com/devops-na-nuvem/strimzi/producer:v2.0
         ports:
         - containerPort: 3000
