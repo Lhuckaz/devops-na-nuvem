@@ -1,5 +1,5 @@
 data "http" "node_pool_crd" {
-  url = "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${jsondecode(data.http.kanpenter_latest_version.response_body)["tag_name"]}/pkg/apis/crds/kanpenter.sh_nodepools.yaml"
+  url = "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${jsondecode(data.http.kanpenter_latest_version.response_body)["tag_name"]}/pkg/apis/crds/karpenter.sh_nodepools.yaml"
 }
 
 resource "kubernetes_manifest" "node_pool_crd" {

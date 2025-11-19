@@ -1,5 +1,5 @@
 data "http" "node_class_crd" {
-  url = "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${jsondecode(data.http.kanpenter_latest_version.response_body)["tag_name"]}/pkg/apis/crds/kanpenter.k8s.aws_ec2nodeclass.yaml"
+  url = "https://raw.githubusercontent.com/aws/karpenter-provider-aws/${jsondecode(data.http.kanpenter_latest_version.response_body)["tag_name"]}/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
 }
 
 resource "kubernetes_manifest" "node_class_crd" {

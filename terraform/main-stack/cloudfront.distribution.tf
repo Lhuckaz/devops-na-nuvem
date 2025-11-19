@@ -3,7 +3,7 @@ data "aws_cloudfront_cache_policy" "managed_cached_optimized" {
 }
 
 data "aws_cloudfront_cache_policy" "use_origin_cache_control_headers_query_strings" {
-  name = "UseOriginCacheControlHeaders-QueryStrinds"
+  name = "UseOriginCacheControlHeaders-QueryStrings"
 }
 
 data "aws_cloudfront_origin_request_policy" "managed_all_viewer" {
@@ -18,8 +18,8 @@ resource "aws_cloudfront_distribution" "site" {
   }
 
   origin {
-    domain_name = data.aws_alb.this.dns_name
-    origin_id   = data.aws_alb.this.dns_name
+    domain_name = data.aws_lb.this.dns_name
+    origin_id   = data.aws_lb.this.dns_name
     custom_origin_config {
       http_port              = 80
       https_port             = 443
@@ -45,7 +45,7 @@ resource "aws_cloudfront_distribution" "site" {
     path_pattern     = "/backend/*"
     allowed_methods  = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
     cached_methods   = ["GET", "HEAD", "OPTIONS"]
-    target_origin_id = data.aws_alb.this.dns_name
+    target_origin_id = data.aws_lb.this.dns_name
 
     cache_policy_id          = data.aws_cloudfront_cache_policy.use_origin_cache_control_headers_query_strings.id
     origin_request_policy_id = data.aws_cloudfront_origin_request_policy.managed_all_viewer.id
