@@ -39,4 +39,4 @@ spec:
     cpu: 1000
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidationAfter: 1m
+    consolidateAfter: 1m
