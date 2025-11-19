@@ -12,8 +12,12 @@ resource "helm_release" "karpenter" {
   name       = "karpenter"
   repository = "oci://public.ecr.aws/karpenter"
   chart      = "karpenter"
-  version    = jsondecode(data.http.karpenter_latest_version.response_body)["tag_name"]
-  namespace  = "kube-system"
+  version = replace(
+    jsondecode(data.http.karpenter_latest_version.response_body)["tag_name"],
+    "v",
+    ""
+  )
+  namespace = "kube-system"
 
   values = [templatefile("./manifest/karpenter.values.yaml", { node_group_name = aws_eks_node_group.this.node_group_name })]
 

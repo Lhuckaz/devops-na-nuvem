@@ -25,7 +25,7 @@
       when: iam_policy_check.stdout == ""
       shell: |
         curl -s -o /tmp/iam_policy.json \
-          https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.14.0/docs/install/iam_policy.json
+          https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.15.0/docs/install/iam_policy.json
         aws iam create-policy \
           --policy-name {{ policy_name }} \
           --policy-document file:///tmp/iam_policy.json
@@ -34,18 +34,14 @@
 
     - name: Ensure IRSA (IAM Service Account) exists
       shell: |
-        eksctl get iamserviceaccount \
-          --cluster {{ eks_cluster }} \
-          --region {{ aws_region }} \
-          --name {{ sa_name }} \
-          --namespace {{ namespace }} || \
         eksctl create iamserviceaccount \
           --cluster {{ eks_cluster }} \
           --namespace {{ namespace }} \
           --name {{ sa_name }} \
           --attach-policy-arn arn:aws:iam::{{ aws_account_id }}:policy/{{ policy_name }} \
           --region {{ aws_region }} \
-          --approve
+          --approve \
+          --override-existing-serviceaccounts
       register: irsa_create
       changed_when: "'created' in irsa_create.stdout"
 
