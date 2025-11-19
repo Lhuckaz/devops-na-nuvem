@@ -12,7 +12,7 @@ resource "aws_iam_role" "karpenter_controller" {
         Condition = {
           StringEquals = {
             "${local.eks_oidc_url}:aud" = "sts.amazonaws.com"
-            "${local.eks_oidc_url}:sub" = "system:serviceaccount:kube-system:karperter"
+            "${local.eks_oidc_url}:sub" = "system:serviceaccount:kube-system:karpenter"
           }
         }
       }
