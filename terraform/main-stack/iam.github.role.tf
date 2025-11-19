@@ -7,14 +7,14 @@ resource "aws_iam_role" "github" {
         Action = "sts:AssumeRoleWithWebIdentity"
         Effect = "Allow"
         Principal = {
-          Federated = aws_iam_openid_connect_provider.this.arn
+          Federated = aws_iam_openid_connect_provider.github.arn
         }
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
           }
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:Lhuckaz/devops-na-nuvem*:*"
+            "token.actions.githubusercontent.com:sub" = "repo:Lhuckaz/devops-na-nuvem:*"
           }
         }
       }
