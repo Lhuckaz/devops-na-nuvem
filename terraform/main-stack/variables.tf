@@ -137,8 +137,8 @@ variable "eks_cluster" {
     node_group_scaling_config_desired_size = number
     node_group_scaling_config_max_size     = number
     node_group_scaling_config_min_size     = number
-    kanpenter_controller_role_name         = string
-    kanpenter_controller_policy_name       = string
+    karpenter_controller_role_name         = string
+    karpenter_controller_policy_name       = string
   })
   default = {
     name                                   = "devops-na-nuvem-eks-cluster"
@@ -153,8 +153,8 @@ variable "eks_cluster" {
     node_group_scaling_config_desired_size = 2
     node_group_scaling_config_max_size     = 2
     node_group_scaling_config_min_size     = 2
-    kanpenter_controller_role_name         = "KanpenterControllerRoleName"
-    kanpenter_controller_policy_name       = "KanpenterControllerPolicyName"
+    karpenter_controller_role_name         = "KarpenterControllerRoleName"
+    karpenter_controller_policy_name       = "KarpenterControllerPolicyName"
   }
 }
 

@@ -1,5 +1,5 @@
 resource "aws_iam_role" "karpenter_controller" {
-  name = var.eks_cluster.kanpenter_controller_role_name
+  name = var.eks_cluster.karpenter_controller_role_name
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -12,7 +12,7 @@ resource "aws_iam_role" "karpenter_controller" {
         Condition = {
           StringEquals = {
             "${local.eks_oidc_url}:aud" = "sts.amazonaws.com"
-            "${local.eks_oidc_url}:sub" = "system:serviceaccount:kube-system:kanperter"
+            "${local.eks_oidc_url}:sub" = "system:serviceaccount:kube-system:karperter"
           }
         }
       }

@@ -1,4 +1,4 @@
-data "http" "kanpenter_latest_version" {
+data "http" "karpenter_latest_version" {
   url = "https://api.github.com/repos/aws/karpenter-provider-aws/releases/latest"
 }
 
@@ -8,14 +8,14 @@ resource "aws_ec2_tag" "this" {
   value       = aws_eks_cluster.this.id
 }
 
-resource "helm_release" "kanpenter" {
+resource "helm_release" "karpenter" {
   name       = "karpenter"
   repository = "oci://public.ecr.aws/karpenter"
   chart      = "karpenter"
-  version    = jsondecode(data.http.kanpenter_latest_version.response_body)["tag_name"]
+  version    = jsondecode(data.http.karpenter_latest_version.response_body)["tag_name"]
   namespace  = "kube-system"
 
-  values = [templatefile("./manifest/kanpenter.values.yaml", { node_group_name = aws_eks_node_group.this.node_group_name })]
+  values = [templatefile("./manifest/karpenter.values.yaml", { node_group_name = aws_eks_node_group.this.node_group_name })]
 
   set = [
     {
