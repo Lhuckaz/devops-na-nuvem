@@ -21,11 +21,23 @@
       register: iam_policy_check
       changed_when: false
 
+    - name: Get latest release metadata from GitHub
+      uri:
+        url: "https://api.github.com/repos/kubernetes-sigs/aws-load-balancer-controller/releases/latest"
+        return_content: yes
+        headers:
+          Accept: "application/vnd.github.v3+json"
+      register: gh_release
+
+    - name: Set latest tag variable
+      set_fact:
+        latest_alb_tag: "{{ (gh_release.content | from_json).tag_name }}"
+
     - name: Create IAM policy if not exists
       when: iam_policy_check.stdout == ""
       shell: |
         curl -s -o /tmp/iam_policy.json \
-          https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.15.0/docs/install/iam_policy.json
+          https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/{{ latest_alb_tag }}/docs/install/iam_policy.json
         aws iam create-policy \
           --policy-name {{ policy_name }} \
           --policy-document file:///tmp/iam_policy.json
