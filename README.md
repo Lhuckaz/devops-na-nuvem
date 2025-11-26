@@ -15,6 +15,6 @@ k get ec2nodeclass
 k get nodepool
 k get nodeclaim
 
-k apply manifest/nginx.yaml
+k apply -f terraform/main-stack/manifest/nginx.yaml
 k scale deployment nginx --replicas=5
 k scale deployment nginx --replicas=0
